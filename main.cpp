@@ -8,12 +8,20 @@
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+    const char* addr = "black.skydns.ru";
+
     //For tests:
-    const char* addr = "www.black.skydns.ru";
     //QDnsLookup *dns = new QDnsLookup(QDnsLookup::TXT, "vk.com");
     QDnsLookup *dns = new QDnsLookup(QDnsLookup::TXT, addr);
     QObject::connect(dns, &QDnsLookup::finished, [&dns, &addr]()
                      {
+                         if (dns->error() && dns->error() != QDnsLookup::InvalidReplyError)
+                         {
+                            std::cout << dns->errorString().toStdString() << "\n";
+                            QCoreApplication::quit();
+                            return;
+                         }
+
                          const auto records = dns->textRecords();
                          if (records.size() > 0)
                          {
@@ -34,7 +42,7 @@ int main(int argc, char *argv[])
                              }
                          } else
                          {
-                            std::cout << addr << "has no TXT record" << "\n";
+                            std::cout << addr << " has no TXT record" << "\n";
                          }
                          QCoreApplication::quit();
                      });
